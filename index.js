@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const cors = require("cors");
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -30,6 +31,7 @@ async function run() {
 
     const db = client.db("petpal");
     const petsCollection = db.collection("allPets");
+    const requestsCollection = db.collection("allAdoptionRequests");
 
     // ----- APIs -----
 
@@ -46,8 +48,6 @@ async function run() {
         );
         res.json(result);
     });
-
-
     
     app.post("/all-pets", async (req, res) => {
       const petData = req.body;
@@ -72,6 +72,11 @@ async function run() {
       );
       res.json(result);
     });
+
+    app.get("/featured", async (req, res) => {
+        const result = await petsCollection.find().limit(6).toArray();
+        res.json(result);
+    });
     
     
     app.get("/my-pets/:ownerId", async (req, res) => {
@@ -83,6 +88,75 @@ async function run() {
         ).toArray();
        res.json(result);
     });
+
+
+
+    //------- All Requests -------
+
+    app.get("/all-adoption-requests/check", async (req, res) => {
+        const { petId, requesterId } = req.query;
+        const result = await requestsCollection.findOne(
+          {
+            petId,
+            requesterId
+          }
+        );
+        if (!result) {
+          return res.send({
+              status: null
+          });
+        }
+        
+        res.send({
+            status: result.status
+        })
+    });
+
+    app.post("/all-adoption-requests", async (req, res) => {
+        const adoptionRequest = req.body;
+
+        const { petId, requesterId, ownerId } = adoptionRequest;
+
+        const pet = await petsCollection.findOne({
+         _id: new ObjectId(petId)
+        });
+        
+        // Prevent already adopted pets from being requested
+        if (pet.adoptionStatus !== "available") {
+          return res.status(400).send({
+              message: "This pet is not available for adoption"
+          });
+        }
+
+        // Prevent owner from requesting own listing
+        if (pet.ownerId === requesterId) {
+          return res.status(400).send({
+              message: "You cannot adopt your own pet"
+          });
+        }
+
+        // Prevent duplicate requests
+        const existingRequest = await requestsCollection.findOne(
+          {
+            petId,
+            requesterId
+          }
+        );
+        if (existingRequest) {
+          return res.status(400).send({
+              message: "You already requested this pet"
+
+          });
+        }
+
+        // finally reuqest
+        const result = await requestsCollection.insertOne(adoptionRequest);
+        res.json(result);
+       
+    });
+
+
+
 
 
     // Send a ping to confirm a successful connection
