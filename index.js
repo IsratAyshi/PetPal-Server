@@ -5,7 +5,11 @@ const express = require("express");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const dotenv = require("dotenv");
 dotenv.config();
+const cors = require("cors");
+
 const app = express();
+app.use(cors());
+app.use(express.json());
 
 
 const PORT = process.env.PORT || 5000;
@@ -29,15 +33,24 @@ async function run() {
 
     // ----- APIs -----
 
-    // app.post("/")
+    app.get("/all-pets", async (req, res) => {
+        const result = await petsCollection.find().toArray();
+        res.json(result);
+    });
+
+    app.post("/all-pets", async (req, res) => {
+        const petData = req.body;
+        const result = await petsCollection.insertOne(petData);
+        res.json(result);
+    });
 
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
+    
+    // await client.close();
   }
 }
 run().catch(console.dir);
