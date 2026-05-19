@@ -2,7 +2,7 @@ const dns = require("node:dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const dotenv = require("dotenv");
 dotenv.config();
 const cors = require("cors");
@@ -33,15 +33,55 @@ async function run() {
 
     // ----- APIs -----
 
+    // ---- All Pets ----
     app.get("/all-pets", async (req, res) => {
         const result = await petsCollection.find().toArray();
         res.json(result);
     });
 
-    app.post("/all-pets", async (req, res) => {
-        const petData = req.body;
-        const result = await petsCollection.insertOne(petData);
+    app.get("/all-pets/:id", async (req, res) => {
+        const id = req.params.id;
+        const result = await petsCollection.findOne(
+            { _id: new ObjectId(id) }
+        );
         res.json(result);
+    });
+
+
+    
+    app.post("/all-pets", async (req, res) => {
+      const petData = req.body;
+      const result = await petsCollection.insertOne(petData);
+      res.json(result);
+    });
+
+    app.patch("/all-pets/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedPetData = req.body;
+      const result = await petsCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedPetData }
+      );
+      res.json(result);
+    });
+
+    app.delete("/all-pets/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await petsCollection.deleteOne(
+        { _id: new ObjectId(id) }
+      );
+      res.json(result);
+    });
+    
+    
+    app.get("/my-pets/:ownerId", async (req, res) => {
+       const ownerId = req.params.ownerId;
+       console.log(ownerId);
+
+       const result = await petsCollection.find(
+            {ownerId}
+        ).toArray();
+       res.json(result);
     });
 
 
