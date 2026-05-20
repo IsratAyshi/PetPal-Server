@@ -37,7 +37,24 @@ async function run() {
 
     // ---- All Pets ----
     app.get("/all-pets", async (req, res) => {
-        const result = await petsCollection.find().toArray();
+
+        const {search, species} = req.query;
+
+        let query = {};
+
+        if (search) {
+            query.petName = { 
+              $regex: search, 
+              $options: "i" 
+            };
+        }
+        if (species && species !== "All") {
+            query.species = {
+              $in: [species],
+            };
+        }
+
+        const result = await petsCollection.find(query).toArray();
         res.json(result);
     });
 
@@ -125,6 +142,14 @@ async function run() {
         res.json(result);
     });
 
+    app.get("/all-adoption-requests/my-requests/:requesterId", async (req, res) => {
+        const requesterId = req.params.requesterId;
+        const result = await requestsCollection.find(
+            { requesterId: requesterId }
+        ).toArray();
+        res.json(result);
+    })
+
     app.post("/all-adoption-requests", async (req, res) => {
         const adoptionRequest = req.body;
 
@@ -192,7 +217,15 @@ async function run() {
         );
         res.json(result);
 
-});
+    });
+
+    app.delete("/all-adoption-requests/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await requestsCollection.deleteOne(
+        { _id: new ObjectId(id) }
+      );
+      res.json(result);
+    });
 
 
 
