@@ -97,13 +97,13 @@ async function run() {
         res.json(result);
     });
     
-    app.post("/all-pets", async (req, res) => {
+    app.post("/all-pets", verifyToken, async (req, res) => {
       const petData = req.body;
       const result = await petsCollection.insertOne(petData);
       res.json(result);
     });
 
-    app.patch("/all-pets/:id", async (req, res) => {
+    app.patch("/all-pets/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const updatedPetData = req.body;
       const result = await petsCollection.updateOne(
@@ -113,7 +113,7 @@ async function run() {
       res.json(result);
     });
 
-    app.delete("/all-pets/:id", async (req, res) => {
+    app.delete("/all-pets/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const result = await petsCollection.deleteOne(
         { _id: new ObjectId(id) }
@@ -127,7 +127,7 @@ async function run() {
     });
     
     
-    app.get("/my-pets/:ownerId", async (req, res) => {
+    app.get("/my-pets/:ownerId", verifyToken, async (req, res) => {
        const ownerId = req.params.ownerId;
       //  console.log(ownerId);
 
@@ -141,12 +141,12 @@ async function run() {
 
     //------- All Requests -------
 
-    app.get("/all-adoption-requests", async (req, res) => {
+    app.get("/all-adoption-requests", verifyToken, async (req, res) => {
         const result = await requestsCollection.find().toArray();
         res.json(result);
     });
 
-    app.get("/all-adoption-requests/check", async (req, res) => {
+    app.get("/all-adoption-requests/check", verifyToken, async (req, res) => {
         const { petId, requesterId } = req.query;
         const result = await requestsCollection.findOne(
           {
@@ -165,7 +165,7 @@ async function run() {
         })
     });
 
-    app.get("/all-adoption-requests/this-pet-requests/:petId", async (req, res) => {
+    app.get("/all-adoption-requests/this-pet-requests/:petId", verifyToken, async (req, res) => {
         const petId = req.params.petId;
         const result = await requestsCollection.find(
             { petId: petId }
@@ -173,7 +173,7 @@ async function run() {
         res.json(result);
     });
 
-    app.get("/all-adoption-requests/my-requests/:requesterId", async (req, res) => {
+    app.get("/all-adoption-requests/my-requests/:requesterId", verifyToken, async (req, res) => {
         const requesterId = req.params.requesterId;
         const result = await requestsCollection.find(
             { requesterId: requesterId }
@@ -181,7 +181,7 @@ async function run() {
         res.json(result);
     })
 
-    app.post("/all-adoption-requests", async (req, res) => {
+    app.post("/all-adoption-requests",verifyToken, async (req, res) => {
         const adoptionRequest = req.body;
 
         const { petId, requesterId, ownerId } = adoptionRequest;
@@ -224,7 +224,7 @@ async function run() {
        
     });
 
-    app.patch("/all-adoption-requests/:id", async (req, res) => {
+    app.patch("/all-adoption-requests/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const updatedRequestData = req.body;
       const result = await requestsCollection.updateOne(
@@ -234,7 +234,7 @@ async function run() {
       res.json(result);
     });
 
-    app.patch("/all-adoption-requests/reject-others/:requestId", async (req, res) => {
+    app.patch("/all-adoption-requests/reject-others/:requestId", verifyToken, async (req, res) => {
         const requestId = req.params.requestId;
         const { petId } = req.body;
 
@@ -250,7 +250,7 @@ async function run() {
 
     });
 
-    app.delete("/all-adoption-requests/:id", async (req, res) => {
+    app.delete("/all-adoption-requests/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const result = await requestsCollection.deleteOne(
         { _id: new ObjectId(id) }
